@@ -1,11 +1,20 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_wtf import FlaskForm
 from wtforms import Label, SubmitField, StringField
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.secret_key = "some secret string"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////books-collection.db'
+db = SQLAlchemy(app)
 
-all_books = []
+
+class BookDB(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(250), unique=True, nullable=False)
+    author = db.Column(db.String(250), nullable=False)
+    rating = db.Column(db.Float, nullable=False)
+
 
 class Book:
     def __init__(self, title, author, rating):
@@ -24,6 +33,7 @@ class AddBookForm(FlaskForm):
 
 @app.route('/')
 def home():
+    all_books = db.session.query(BookDB).all()
     return render_template('index.html', all_books=all_books)
 
 
@@ -31,9 +41,12 @@ def home():
 def add():
     add_book = AddBookForm()
     if add_book.validate_on_submit():
-        b = Book(title=add_book.book_name.data, author=add_book.book_author.data,
-                 rating=add_book.book_rating.data)
-        all_books.insert(0, b)
+        db.create_all()
+        new_book = BookDB(title=add_book.book_name.data, author=add_book.book_author.data,
+                        rating=float(add_book.book_rating.data))
+        db.session.add(new_book)
+        db.session.commit()
+        all_books = db.session.query(BookDB).all()
         return render_template('index.html', all_books=all_books)
     else:
         return render_template('add.html', form=add_book)

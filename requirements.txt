@@ -1,4 +1,5 @@
-Flask==2.0.3
+Flask==2.2.3
 jinja2
 Flask-WTF==1.1.1
 wtforms==3.0.1
+Flask-SQLAlchemy
