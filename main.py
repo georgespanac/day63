@@ -31,6 +31,13 @@ class AddBookForm(FlaskForm):
     book_rating = StringField(label='book_rating')
     add_book_button = SubmitField("Add Book")
 
+
+class EditRatingForm(FlaskForm):
+    book_name_label = Label(field_id="book_name", text="Book Name")
+    current_rating_label = Label(field_id="book_name", text="Current rating")
+    new_rating = StringField(label='new_rating')
+    change_rating_button = SubmitField("Change Rating")
+
 @app.route('/')
 def home():
     all_books = db.session.query(BookDB).all()
@@ -50,6 +57,24 @@ def add():
         return render_template('index.html', all_books=all_books)
     else:
         return render_template('add.html', form=add_book)
+
+
+@app.route("/edit_rating/<book_id>", methods=["GET", "POST"])
+def edit_rating(book_id):
+    form = EditRatingForm()
+    book = BookDB.query.get(book_id)
+    if form.validate_on_submit():
+        new_rating = form.new_rating.data
+        book_to_update = BookDB.query.get(book_id)
+        book_to_update.rating = new_rating
+        db.session.commit()
+        all_books = db.session.query(BookDB).all()
+        return render_template('index.html', all_books=all_books)
+    else:
+        return render_template('edit_rating.html', form=form, book=book)
+
+
+    print(book_id)
 
 if __name__ == "__main__":
     app.run(debug=True)
