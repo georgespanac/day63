@@ -59,6 +59,14 @@ def add():
         return render_template('add.html', form=add_book)
 
 
+@app.route("/delete/<book_id>", methods=["GET"])
+def delete(book_id):
+    book_to_delete = BookDB.query.get(book_id)
+    db.session.delete(book_to_delete)
+    db.session.commit()
+    all_books = db.session.query(BookDB).all()
+    return render_template('index.html', all_books=all_books)
+
 @app.route("/edit_rating/<book_id>", methods=["GET", "POST"])
 def edit_rating(book_id):
     form = EditRatingForm()
